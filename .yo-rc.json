@@ -1,0 +1,16 @@
+{
+  "generator-klarify": {
+    "name": "klarify-ds-webcrm",
+    "version": "0.0.0",
+    "description": "",
+    "dataSource": "WebCRM",
+    "dataSourceCamel": "webCRM",
+    "author": "Kristoffer Östlund",
+    "git": {
+      "url": "https://github.com/Kugghuset/klarify-ds-webcrm",
+      "branch": "master",
+      "rawUrl": "git@github.com:Kugghuset/klarify-ds-webcrm.git"
+    },
+    "gitInit": true
+  }
+}
