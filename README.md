@@ -16,6 +16,8 @@
 
 # klarify-ds-webcrm
 
+[WebCRM integration page](https://b2bsys.net/tcm/crm_PROD_5/integration.asp)
+
 ### Setting up the project
 
 The project runs on [Node.js](https://nodejs.org/en/), and is written in JavaScript. The database type is Microsoft SQL.
