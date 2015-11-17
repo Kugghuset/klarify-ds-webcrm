@@ -115,3 +115,143 @@ npm test
 Committing straight onto `master` is a no-no. Commits done onto feature specific branches, which then are audited and if it passes can be merge into `master` by an admin. Commits are made on a regular basis when *_the current step is finished_* and Pull Requests are made *when the current feature is finished*.
 
 Commmit messages should be concise and written in futurum, which means a commit which has added a GET request to the Customer endpoint on the Fortnox API would be something like: `Add GET request to Customer endpoint`.
+
+
+### Making requests to the API
+
+WebCRM provides a SOAP API, where this project will be using the SOAP 1.2 version, as the regular HTTP requests seems to not properly work. [The docs can be found here](https://b2b-email.net/apicrm1/webCRMAPI.asmx), and primarily the [Authenticate](https://b2b-email.net/apicrm1/webCRMAPI.asmx?op=Authenticate) and [ReadFromWebcrmByDatesDirect](https://b2b-email.net/apicrm1/webCRMAPI.asmx?op=ReadFromWebcrmByDatesDirect) will be used.
+
+#### Authenticate
+
+The examples [can be found here](https://b2b-email.net/apicrm1/webCRMAPI.asmx?op=Authenticate), and should look something like this:
+
+When making the request we need: `dbnCode`, `userName` and `password`, which can be found [on the integration page](https://b2bsys.net/tcm/crm_PROD_5/integration.asp). The `Guid` in the `TicketHeader` (marked as `[API TOKEN]` in the example) should be saved during the session, as it dies quite quickly, so `dbnCode`, `userName` and `password` are stored in the `userConfig.js` file.
+
+**URL**
+```
+b2b-email.net/apicrm1/webCRMAPI.asmx
+```
+
+**HEADERS**
+```
+Content-Type: application/soap+xml; charset=utf-8
+```
+
+**BODY**
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+  <soap12:Body>
+    <Authenticate xmlns="http://www.webcrm.com/">
+      <dbnCode>[INSERT DBNCODE HERE]</dbnCode>
+      <userName>[INSERT USERNAME HERE]</userName>
+      <password>[INSERT PASSWORD HERE]</password>
+    </Authenticate>
+  </soap12:Body>
+</soap12:Envelope>
+```
+
+**RESPONSE**
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <soap:Header>
+        <TicketHeader xmlns="http://www.webcrm.com/">
+            <Guid>[API TOKEN]</Guid>
+        </TicketHeader>
+    </soap:Header>
+    <soap:Body>
+        <AuthenticateResponse xmlns="http://www.webcrm.com/">
+            <AuthenticateResult>
+                <Message />
+                <Code>0</Code>
+            </AuthenticateResult>
+        </AuthenticateResponse>
+    </soap:Body>
+</soap:Envelope>
+```
+
+#### Get resource
+
+**RESOURCES**
+
+- Organisations
+- Persons
+- Activities
+- Products
+- Opportunities
+- Deliveries
+- Users (limited methods and fields)
+- Events (meetings) Relations
+- Linked data (has no data entity number)
+
+These seems to be accessed pretty much the same way via `ReadFromWebcrmByDatesDirect`, only changing what is noted as `[RESOURCE NAME]` and `[API TOKEN]`. Simply swap the `[RESOURCE NAME]` to the resource to request.
+
+To get all instances, set `[START DATE]` to `2015-08-09T00:00:00Z` or the equivalent creation date (though it seems a little random, but I don't know). Set `[END DATE]` to now. The date format is `yyyy-MM-ddThh:mm:ssZ`, for instance `2015-11-17T15:55:00Z`. Note the T between the date and time, and the Z at the end.
+
+**URL**
+
+```
+b2b-email.net/apicrm1/webCRMAPI.asmx
+```
+
+**HEADERS**
+
+```
+Content-Type: application/soap+xml; charset=utf-8
+```
+
+**BODY**
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+  <soap12:Header>
+    <TicketHeader xmlns="http://www.webcrm.com/">
+      <Guid>[API TOKEN]</Guid>
+    </TicketHeader>
+  </soap12:Header>
+  <soap12:Body>
+    <ReadFromWebcrmByDatesDirect xmlns="http://www.webcrm.com/">
+      <entityType>[RESOURCE NAME]</entityType>
+      <fromDateTime>[START DATE}</fromDateTime>
+      <toDateTime>[END DATE]</toDateTime>
+      <dateMode>ByUpdateDate</dateMode>
+    </ReadFromWebcrmByDatesDirect>
+  </soap12:Body>
+</soap12:Envelope>
+```
+
+**RESPONSE**
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <soap:Body>
+        <ReadFromWebcrmByDatesDirectResponse xmlns="http://www.webcrm.com/">
+            <ReadFromWebcrmByDatesDirectResult>
+                <ErrorStatus>
+                    <Message />
+                    <Code>0</Code>
+                </ErrorStatus>
+                <DataRecords>
+                    <WebCrmData>
+                        <ErrorStatus>
+                            <Message />
+                            <Code>0</Code>
+                        </ErrorStatus>
+                        <Pairs>
+                            <KeyValuePair>
+                                <Key>p_firstName</Key>
+                                <Value>Olof</Value>
+                            </KeyValuePair>
+                            <... MORE KeyValuePair ...>
+                        </Pairs>
+                    </WebCrmData>
+                    <... MORE WebCrmData ...>
+                </DataRecords>
+            </ReadFromWebcrmByDatesDirectResult>
+        </ReadFromWebcrmByDatesDirectResponse>
+    </soap:Body>
+</soap:Envelope>
+```
